@@ -119,7 +119,16 @@ over [P : Set] that implements the following description found in
     - contains [F ∧ G], [F ∨ G] and [F ⇒ G], for
       every [F] and [G] it contains''
 
-*)
+ *)
+
+Variable P : Type.
+
+Inductive fml : Type :=
+  | Simple : P -> fml
+  | Not : P -> fml
+  | And : P -> P -> fml
+  | Or : P -> P -> fml
+  | Imply : P -> P -> fml.
 
 
 (** 
@@ -169,16 +178,33 @@ itself.
 tree' -> tree] witnessing the fact that the types [tree'] and [tree]
 are isomorphic. *)
 
-Axiom phi: tree -> tree'. (* XXX: implement me! *)
-Axiom psi: tree' -> tree. (* XXX: implement me! *)
+Fixpoint phi (t: tree) : tree' :=
+  match t with
+    | Leaf => Constr OpLeaf
+    | Node n l r => Constr (OpNode n (phi l) (phi r))
+  end.
 
+Fixpoint psi (t: tree') : tree :=
+  match t with
+    | Constr t' => match t' with
+                    | OpLeaf => Leaf
+                    | OpNode n l r => Node n (psi l) (psi r)
+                  end
+  end.
 
 (** **** Exercise: 2 stars (psi_phi)  *)
 (** Prove the following lemma: *)
 
 Lemma psi_phi: forall t, psi (phi t) = t.
 Proof.
-  admit.
+  intros.
+  induction t.
+  - simpl.
+    reflexivity.
+  - simpl.
+    rewrite IHt1.
+    rewrite IHt2.
+    reflexivity.
 Qed.
 
 (** **** Exercise: 5 stars (phi_psi)  *)
@@ -186,8 +212,9 @@ Qed.
 
 Lemma phi_psi: forall t, phi (psi t) = t.
 Proof.
-  admit.
-Qed.
+  intros.
+  induction t.
+Admitted.
 
 (** *** Initiality *)
 
@@ -202,10 +229,11 @@ its fixpoint [list']. Convince yourself (or prove) that [list A] is
 isomorphic to [list']. *)
 
 Inductive sigma_list (X: Type) :=
-.
+| ListNil : sigma_list X
+| ListCons : A -> X -> sigma_list X.
 
 Inductive list' : Type :=
-.
+| ListConstr : sigma_list list' -> list'.
 
 (** We assume that we are given an _algebra_ [alpha] over lists: *)
 
@@ -217,13 +245,24 @@ Variable alpha : sigma_list X -> X.
 X]. You may find some inspiration by using [Print] on Coq's
 implementation of [fold_right]. *)
 
+Print fold_right.
+
+Fixpoint fold_list (l: list A) : X :=
+  match l with
+    | [] => alpha ListNil
+    | n :: t => alpha (ListCons n (fold_list t))
+  end.
+
+Print fold_list.
 
 End List.
 
 (** **** Exercise: 3 stars (fold_length)  *)
 (** By defining a suitable algebra [alpha_length], implement the
 function [length : list A -> nat] using [fold_list]. *)
-
+  
+Fixpoint alpha_length (A: Type) (l: list A) : nat :=
+  fold_list l.
 
 Section FoldTree.
 
@@ -232,6 +271,13 @@ Variable X: Type.
 (** **** Exercise: 4 stars (fold_tree)  *)
 (** Using [alpha], implement a function [fold_tree] of type [tree ->
 X]. *)
+
+Fixpoint fold_tree (t: tree) : X :=
+  match t with
+    | Leaf => alpha OpLeaf
+    | Node n l r => alpha OpNode (n (alpha l) (alpha r))
+  end.
+
 
 Axiom fold_tree : forall (alpha : sigma_tree X -> X), tree -> X. (* XXX: implement me! *)
 
