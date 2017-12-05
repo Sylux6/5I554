@@ -253,24 +253,68 @@ Proof.
     function which performs that transformation on [bexp]s, and prove
     it is sound. *)
 
-Fixpoint optimize_0plus_b (b : bexp) : bexp 
-  (* REPLACE THIS LINE WITH   := _your_definition_ . *) . Admitted.
+Fixpoint optimize_0plus_b (b : bexp) : bexp :=
+  match b with
+    | BTrue => BTrue
+    | BFalse => BFalse
+    | BEq a1 a2 => BEq (optimize_0plus a1) (optimize_0plus a2)
+    | BLe a1 a2 => BLe (optimize_0plus a1) (optimize_0plus a2)
+    | BNot b1 => BNot (optimize_0plus_b b1)
+    | BAnd b1 b2 => BAnd (optimize_0plus_b b1) (optimize_0plus_b b2)
+  end.
 
-
-(** 
-[[
 Theorem optimize_0plus_b_sound : forall b,
   beval (optimize_0plus_b b) = beval b.
-]]
-*)
-
-
+Proof.
+  intros.
+  induction b.
+  - simpl.
+    reflexivity.
+  - simpl.
+    reflexivity.
+  - simpl.
+    repeat rewrite optimize_0plus_sound.
+    reflexivity.
+  - simpl.
+    repeat rewrite optimize_0plus_sound.
+    reflexivity.
+  - simpl.
+    rewrite IHb.
+    reflexivity.
+  - simpl.
+    rewrite IHb1.
+    rewrite IHb2.
+    reflexivity.
+Qed.    
+    
 (** **** Exercise: 4 stars, optional (optimizer)  *)
 (** _Design exercise_: The optimization implemented by our
     [optimize_0plus] function is only one of many possible
     optimizations on arithmetic and boolean expressions.  Write a more
     sophisticated optimizer and prove it correct. *)
 
+Fixpoint optimize (a: aexp) : aexp :=
+  match a with
+    | ANum n => ANum n
+    | APlus e1 (ANum 0) => optimize e1                          
+    | APlus (ANum 0) e2 => optimize e2
+    | APlus e1 e2 => APlus (optimize e1) (optimize e2)
+    | AMinus e1 (ANum 0) => optimize e1
+    | AMinus e1 e2 => AMinus (optimize e1) (optimize e2)
+    | AMult (ANum 0) e2 => ANum 0
+    | AMult e1 (ANum 0) => ANum 0
+    | AMult e1 e2 => AMult (optimize e1) (optimize e2)
+  end.
+
+Fixpoint optimize_b (b : bexp) : bexp :=
+  match b with
+    | BTrue => BTrue
+    | BFalse => BFalse
+    | BEq a1 a2 => BEq (optimize a1) (optimize a2)
+    | BLe a1 a2 => BLe (optimize a1) (optimize a2)
+    | BNot b1 => BNot (optimize_b b1)
+    | BAnd b1 b2 => BAnd (optimize_b b1) (optimize_b b2)
+  end.
 
 (* ################################################################# *)
 (** * Evaluation as a Relation *)
@@ -471,6 +515,41 @@ Qed.
     [aevalR], and prove that it is equivalent to [beval].*)
 
 
+Inductive bevalR : bexp -> bool -> Prop :=
+| E_BTrue  : bevalR BTrue true
+| E_BFalse : bevalR BFalse false
+| E_BEq : forall (e1 e2: aexp) (n1 n2: nat),
+            aevalR e1 n1 ->
+            aevalR e2 n2 ->
+            bevalR (BEq e1 e2) (beq_nat n1 n2)
+| E_BLe : forall (e1 e2: aexp) (n1 n2: nat),
+            aevalR e1 n1 ->
+            aevalR e2 n2 ->
+            bevalR (BLe e1 e2) (leb n1 n2)
+| E_BNot : forall (e: bexp) (b:bool),
+             bevalR e b ->
+             bevalR (BNot e) (negb b)
+| E_BAnd : forall (e1 e2: bexp) (b1 b2: bool),
+             bevalR e1 b1 ->
+             bevalR e2 b2 ->
+             bevalR (BAnd e1 e2) (andb b1 b2).
+
+Theorem beval_iff_bevalR : forall e b,
+  bevalR e b <-> beval e = b.
+Proof.
+  split.
+  - intros.
+    induction H; simpl.
+    + reflexivity.
+    + reflexivity.
+    + .
+      
+
+
+
+
+
+      
 End AExp.
 
 (* ================================================================= *)
