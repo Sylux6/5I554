@@ -68,9 +68,11 @@ to store its argument in memory. *)
 (** As usual, the signature is in fact a _functor_, ie. it comes
     equipped with a transport map: *)
 
-Axiom sigma_state_map : forall {A B} (f : A -> B)(xs: sigma_state A), sigma_state B.
-    (* XXX: implement me! *)
-
+Definition sigma_state_map {A B} (f : A -> B)(xs: sigma_state A) : sigma_state B :=
+  match xs with
+    | OpGet u k => OpGet u (fun n => f (k n)) 
+    | OpSet n k => OpSet n (fun u => f (k u))
+  end.
 
 
 (** By exploiting the above functor, we can implement a form of
@@ -150,7 +152,14 @@ Fixpoint state_ind_mult
          (s : state X): P s.
 ]]
 
-*)
+ *)
+
+Fixpoint state_ind_mult
+         (X : Type)(P : state X -> Prop)
+         (ih_ret : forall x : X, P (ret x)) 
+         (ih_get : forall tt k, (forall n, P (k n)) -> P (op (OpGet tt k)))
+         (ih_set : forall n k, (forall tt, P (k tt)) -> P (op (OpSet n k)))
+         (s : state X): P s.
 
 
 (**
@@ -175,8 +184,11 @@ Lemma bind_left_unit {X Y}:
     (let! y := ret x in k y) = k x.
 ]]
 
-*)
+ *)
 
+
+
+  
 
 (** **** Exercise: 2 stars *)
 (** The second law states that returning a stateful value amounts to

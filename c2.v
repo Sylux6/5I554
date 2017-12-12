@@ -542,13 +542,32 @@ Proof.
     induction H; simpl.
     + reflexivity.
     + reflexivity.
-    + .
+    + apply aeval_iff_aevalR in H.
+      rewrite H.
+      apply aeval_iff_aevalR in H0.
+      rewrite H0.
+      reflexivity.
+    + apply aeval_iff_aevalR in H.
+      apply aeval_iff_aevalR in H0.
+      rewrite H.
+      rewrite H0.
+      reflexivity.
+    + rewrite IHbevalR.
+        reflexivity.
+    + rewrite IHbevalR1.
+      rewrite IHbevalR2.
+      reflexivity.
+  - generalize dependent b. intros. induction e; simpl.
+    + rewrite <- H.
+      apply E_BTrue.
+    + rewrite <- H.
+      apply E_BFalse.
+    + rewrite <- H.
+      apply E_BEq.
+      .
       
 
-
-
-
-
+        
       
 End AExp.
 
