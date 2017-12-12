@@ -160,7 +160,17 @@ Fixpoint state_ind_mult
          (ih_get : forall tt k, (forall n, P (k n)) -> P (op (OpGet tt k)))
          (ih_set : forall n k, (forall tt, P (k tt)) -> P (op (OpSet n k)))
          (s : state X): P s.
-
+Proof.
+  induction s; simpl.
+  + apply ih_ret.
+  + destruct s.
+    - apply ih_get.
+      intro.
+      now apply state_ind_mult.
+    - apply ih_set.
+      intro.
+      now apply state_ind_mult.
+Qed.
 
 (**
 
@@ -186,9 +196,14 @@ Lemma bind_left_unit {X Y}:
 
  *)
 
-
-
-  
+Lemma bind_left_unit {X Y}:
+  forall (x: X)(k: X -> state Y),
+    (let! y := ret x in k y) = k x.
+Proof.
+  intros.
+  simpl.
+  reflexivity.
+Qed.  
 
 (** **** Exercise: 2 stars *)
 (** The second law states that returning a stateful value amounts to
@@ -201,9 +216,24 @@ Lemma bind_right_unit {X}:
   forall (mx: state X),
     let! x := mx in ret x = mx.
 ]]
-*)
+ *)
+
+Lemma bind_right_unit {X}:
+  forall (mx: state X),
+    let! x := mx in ret x = mx.
+Proof.
+  intros.
+  induction mx; simpl.
+  + reflexivity.
+  + destruct s.
+    - simpl.
+      repeat f_equal.
+      
 
 
+      
+
+      
 (** **** Exercise: 2 stars *)
 (** Finally, the third law states that we can always parenthesize
 [bind]s from left to right or, put otherwise, [bind] is
@@ -395,6 +425,15 @@ Fixpoint eval {X}(ms: state X) : sem_state X :=
 ]]
 
  *)
+
+Fixpoint eval {X}(ms: state X) : sem_state X.
+refine (match ms with
+          | ret x => fun n => (n, x)
+          | op (OpGet tt k) => fun n => eval _ (k n) n
+          | op (OpSet n k) => fun m => eval _ (k tt) n
+        end).
+unfold sem_state.
+Print sigma_state.
 
 
 (** **** Exercise: 1 star *)
