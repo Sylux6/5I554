@@ -2,7 +2,7 @@
 
 Require Import Lists.List.
 Import ListNotations.
-
+Require Import FunctionalExtensionality.
 (** So far, we have mostly used Coq as a theorem prover. However,
     every now and then, we have used it for implementing purely
     functional programs. These programs cannot store data in memory,
@@ -223,12 +223,15 @@ Lemma bind_right_unit {X}:
     let! x := mx in ret x = mx.
 Proof.
   intros.
-  induction mx; simpl.
+  induction mx using state_ind_mult; simpl.
   + reflexivity.
-  + destruct s.
-    - simpl.
-      repeat f_equal.
-      
+  + repeat f_equal.
+    apply functional_extensionality.
+    apply H.
+  + repeat f_equal.
+    apply functional_extensionality.
+    apply H.
+Qed.
 
 
       
