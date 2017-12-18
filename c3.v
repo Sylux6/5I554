@@ -3,6 +3,7 @@
 Require Import Lists.List.
 Import ListNotations.
 Require Import FunctionalExtensionality.
+
 (** So far, we have mostly used Coq as a theorem prover. However,
     every now and then, we have used it for implementing purely
     functional programs. These programs cannot store data in memory,
@@ -103,7 +104,9 @@ Set Printing All.
 Eval compute -[plus] in test.
 Unset Printing All.
 
+(**
 Check nat_iter.
+**)
 Fixpoint nat_iterM {A}(n: nat)(rec: A -> state A)(bc: state A): state A :=
   match n with
   | 0 => 
@@ -232,10 +235,6 @@ Proof.
     apply functional_extensionality.
     apply H.
 Qed.
-
-
-      
-
       
 (** **** Exercise: 2 stars *)
 (** Finally, the third law states that we can always parenthesize

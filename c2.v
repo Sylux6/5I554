@@ -564,11 +564,25 @@ Proof.
       apply E_BFalse.
     + rewrite <- H.
       apply E_BEq.
-      .
-      
+      apply aeval_iff_aevalR.
+      reflexivity.
+      apply aeval_iff_aevalR.
+      reflexivity.
+    + rewrite <- H.
+      apply E_BLe.
+      apply aeval_iff_aevalR.
+      reflexivity.
+      apply aeval_iff_aevalR.
+      reflexivity.
+    + rewrite <- H in IHe.
+      simpl in IHe.
+      simpl in H.
+      rewrite <- H.
+      Admitted.
 
-        
-      
+
+
+
 End AExp.
 
 (* ================================================================= *)
@@ -748,7 +762,19 @@ Definition beq_id x1 x2 :=
 ]]
 *)
 
+Theorem beq_id_refl : forall x, true = beq_id x x.
+Proof.
+  intros.
+  case x.
+  intuition.
+  simpl.
+  induction n; simpl.
+  - reflexivity.
+  - rewrite IHn.
+    reflexivity.
+Qed.
 
+    
 (** The following useful property of [beq_id] follows from an
     analogous lemma about numbers: *)
 
@@ -909,6 +935,38 @@ Admitted.
 
 *)
 
+Print reflect.
+
+Lemma beq_idP : forall x y, reflect (x = y) (beq_id x y).
+Proof.
+  intros.
+  case x.
+  intuition.
+  induction n; simpl.
+  - case y.
+    intros.
+    case n.
+    + apply ReflectT.
+      reflexivity.
+    + intros.
+      apply ReflectF.
+      apply beq_id_false_iff.
+      unfold beq_id.
+      simpl.
+      reflexivity.
+  - case y.
+    intros.
+    case n0.
+    + apply ReflectF.
+      apply beq_id_false_iff.
+      unfold beq_id.
+      simpl.
+      reflexivity.
+    + intros.
+      Admitted.
+      
+
+  
 
 (** Now, given [id]s [x1] and [x2], we can use the [destruct (beq_idP
     x1 x2)] to simultaneously perform case analysis on the result of
