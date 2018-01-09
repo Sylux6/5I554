@@ -125,10 +125,10 @@ Variable P : Type.
 
 Inductive fml : Type :=
   | Simple : P -> fml
-  | Not : P -> fml
-  | And : P -> P -> fml
-  | Or : P -> P -> fml
-  | Imply : P -> P -> fml.
+  | Not : fml -> fml
+  | And : fml -> fml -> fml
+  | Or : fml -> fml -> fml
+  | Imply : fml -> fml -> fml.
 
 
 (** 
@@ -228,7 +228,7 @@ Variable A X: Type.
 its fixpoint [list']. Convince yourself (or prove) that [list A] is
 isomorphic to [list']. *)
 
-Inductive sigma_list (X: Type) :=
+Inductive sigma_list (X: Type) : Type :=
 | ListNil : sigma_list X
 | ListCons : A -> X -> sigma_list X.
 
@@ -260,9 +260,8 @@ End List.
 (** **** Exercise: 3 stars (fold_length)  *)
 (** By defining a suitable algebra [alpha_length], implement the
 function [length : list A -> nat] using [fold_list]. *)
-  
-Fixpoint alpha_length (A: Type) (l: list A) : nat :=
-  fold_list l.
+
+
 
 Section FoldTree.
 
@@ -271,12 +270,6 @@ Variable X: Type.
 (** **** Exercise: 4 stars (fold_tree)  *)
 (** Using [alpha], implement a function [fold_tree] of type [tree ->
 X]. *)
-
-Fixpoint fold_tree (t: tree) : X :=
-  match t with
-    | Leaf => alpha OpLeaf
-    | Node n l r => alpha OpNode (n (alpha l) (alpha r))
-  end.
 
 
 Axiom fold_tree : forall (alpha : sigma_tree X -> X), tree -> X. (* XXX: implement me! *)

@@ -261,9 +261,7 @@ Theorem hoare_pre_false : forall (P Q : Assertion) c,
   {{P}} c {{Q}}.
 Proof.
   intros P Q c H. unfold hoare_triple.
-  intros st st' Heval HP.
-  unfold not in H. apply H in HP.
-  inversion HP.  
+  intros st st' Heval HP. apply H in HP. contradiction.
 Qed.
 
 (* ################################################################# *)
@@ -418,7 +416,7 @@ Notation "P [ X |-> a ]" := (assn_sub X a P) (at level 10).
 
 Theorem hoare_asgn : forall Q X a,
   {{Q [X |-> a]}} (X ::= a) {{Q}}.
-Proof.
+Proof.  
   unfold hoare_triple.
   intros Q X a st st' HE HQ.
   inversion HE. subst.
@@ -446,8 +444,12 @@ Proof. apply hoare_asgn.  Qed.
 
    ...into formal statements (use the names [assn_sub_ex1] 
    and [assn_sub_ex2]) and use [hoare_asgn] to prove them. *)
-
-Lemma hoare_sub_ex1: (* YOUR STATEMENT HERE *) False. Admitted.
+Lemma hoare_sub_ex1:
+  {{(fun st => st X <= 5) [X |-> APlus (AId X) (ANum 1)]}}
+    (X ::= APlus (AId X) (ANum 1))
+    {{(fun st => st X <= 5)}}.
+Proof. apply hoare_asgn. Qed.
+                 
 Lemma hoare_sub_ex2: (* YOUR STATEMENT HERE *) False. Admitted.
 
 
@@ -491,8 +493,12 @@ Theorem hoare_asgn_fwd :
             /\ st X = aeval (t_update st X m) a }}.
 Proof.
   intros m a P.
-Admitted.
-
+  unfold hoare_triple.
+  intros st st' HE [H1 H2].
+  split; inversion HE; subst; rewrite t_update_shadow; rewrite t_update_same.
+  - assumption.
+  - rewrite t_update_eq. reflexivity.  
+Qed.
 
 (** **** Exercise: 2 stars, advanced (hoare_asgn_fwd_exists)  *)
 (** Another way to define a forward rule for assignment is to
@@ -514,8 +520,12 @@ Theorem hoare_asgn_fwd_exists :
                 st X = aeval (t_update st X m) a }}.
 Proof.
   intros a P.
-Admitted.
-
+  unfold hoare_triple.
+  intros st st' HE H.
+  exists (st X).
+  split; inversion HE; subst; rewrite t_update_shadow, t_update_same;
+  auto using t_update_eq.
+Qed.
 
 (* ================================================================= *)
 (** ** Consequence *)
@@ -745,7 +755,16 @@ Qed.
    [assn_sub_ex2']) and use [hoare_asgn] and [hoare_consequence_pre] cn
    to prove them. *)
 
-Lemma assn_sub_ex1': (* YOUR STATEMENT HERE *) False. Admitted.
+Lemma assn_sub_ex1':
+  {{ (fun st => st X + 1 <= 5) }}
+    (X ::= APlus (AId X) (ANum 1))
+  {{ fun st => st X <= 5}}.
+Proof.
+  eapply hoare_consequence_pre.
+  - apply hoare_asgn.
+  - unfold assert_implies. intros. unfold assn_sub. rewrite t_update_eq. simpl. assumption.
+Qed.
+  
 Lemma assn_sub_ex2': (* YOUR STATEMENT HERE *) False. Admitted.
 
 
