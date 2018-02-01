@@ -557,34 +557,22 @@ Proof.
     + rewrite IHbevalR1.
       rewrite IHbevalR2.
       reflexivity.
-  - generalize dependent b. intros. induction e; simpl.
-    + rewrite <- H.
-      apply E_BTrue.
-    + rewrite <- H.
-      apply E_BFalse.
-    + rewrite <- H.
-      apply E_BEq.
-      apply aeval_iff_aevalR.
+  - generalize dependent b. induction e; simpl; intros; subst.
+    + apply E_BTrue.
+    + apply E_BFalse.
+    + apply E_BEq.
+      apply aeval_iff_aevalR. reflexivity.
+      apply aeval_iff_aevalR. reflexivity.
+    + apply E_BLe.
+      * apply aeval_iff_aevalR. reflexivity.
+      * apply aeval_iff_aevalR. reflexivity.
+    + apply E_BNot.
+      apply IHe.
       reflexivity.
-      apply aeval_iff_aevalR.
-      reflexivity.
-    + rewrite <- H.
-      apply E_BLe.
-      apply aeval_iff_aevalR.
-      reflexivity.
-      apply aeval_iff_aevalR.
-      reflexivity.
-    + rewrite <- H.
-      simpl.
-      apply E_BNot.
-
-
-
-      
-      Admitted.
-
-
-
+    + apply E_BAnd.
+      * apply IHe1. reflexivity.
+      * apply IHe2. reflexivity.
+Qed.
 
 End AExp.
 
