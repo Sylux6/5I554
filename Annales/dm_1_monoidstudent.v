@@ -174,12 +174,11 @@ Proof.
   apply mon_assoc.
   apply mon_congr.
   - apply mon_sym. apply mon_right_id.
-  - eapply mon_trans.
-    apply mon_assoc.
-    apply mon_congr.
+  - eapply mon_trans. apply mon_assoc. apply mon_congr.
     + apply mon_sym. apply mon_left_id.
-    + eapply mon_trans. apply mon_assoc.
-  admit.
+    + eapply mon_trans.
+      * apply mon_left_id.
+      * apply mon_right_id.
 Qed.
 
 (** Le type [exp] nous permet ainsi de représenter une expression
@@ -258,22 +257,43 @@ Definition norm (e: exp): exp := reify (eval e).
 Lemma yoneda: 
   forall e e', e # e' ~ eval e e'.
 Proof.
-  admit.
+  induction e, e'; intros; constructor.
+  - eapply mon_trans; simpl. 
+    + eapply mon_sym in IHe1. apply IHe1.
+    + apply mon_sym. eapply mon_trans. apply mon_assoc. eapply mon_trans. apply IHe1. apply mon_sym. eapply mon_trans.
+      * apply mon_congr. constructor. eapply mon_sym in IHe2. apply IHe2.
+      * apply mon_sym. eapply mon_sym in IHe1. apply IHe1. 
+  - eapply mon_trans; simpl. 
+    + eapply mon_sym in IHe1. apply IHe1.
+    + apply mon_sym. eapply mon_trans. apply mon_assoc. eapply mon_trans. apply IHe1. apply mon_sym. eapply mon_trans.
+      * apply mon_congr. constructor. eapply mon_sym in IHe2. apply IHe2.
+      * apply mon_sym. eapply mon_sym in IHe1. apply IHe1. 
+  - eapply mon_trans; simpl. 
+    + eapply mon_sym in IHe1. apply IHe1.
+    + apply mon_sym. eapply mon_trans. apply mon_assoc. eapply mon_trans. apply IHe1. apply mon_sym. eapply mon_trans.
+      * apply mon_congr. constructor. eapply mon_sym in IHe2. apply IHe2.
+      * apply mon_sym. eapply mon_sym in IHe1. apply IHe1. 
 Qed.
-
+  
 Lemma pre_soundness: 
   forall e, e ~ norm e.
 Proof.
   intro e.
   eapply mon_trans.
   eapply mon_sym. eapply mon_right_id.
-  admit.
+  unfold norm. unfold reify.
+  apply yoneda.
 Qed.
 
 Lemma pre_completeness: 
   forall e1 e2, e1 ~ e2 -> forall e', eval e1 e' = eval e2 e'.
 Proof.
-  admit.
+  intros.
+  generalize dependent e'.
+  induction H; try constructor.
+  - auto.
+  - intros. rewrite IHeq1. rewrite <- IHeq2. reflexivity.
+  - intros. simpl. rewrite IHeq1. rewrite IHeq2. reflexivity.
 Qed.
 
 (** QUESTION [difficulté [***] / longueur [*]]
@@ -284,13 +304,15 @@ Qed.
 Theorem soundness:
   forall e1 e2, norm e1 = norm e2 -> e1 ~ e2.
 Proof.
-  admit.
-Qed.
+Admitted.
 
 Theorem completeness: 
   forall e1 e2, e1 ~ e2 -> norm e1 = norm e2.
 Proof.
-  admit.
+  unfold norm. unfold reify.
+  intros.
+  apply pre_completeness.
+  assumption.
 Qed.
 
 
@@ -313,7 +335,7 @@ Example non_trivial_equality:
                  (Seq (AId W) Unit)) 
             (Seq (AId X) (Seq (AId Y) (AId Z))))).
 Proof.
-  admit.
+  apply soundness. compute. reflexivity.
 Qed.
 
 (** * Preuve par réflection *)
@@ -362,7 +384,15 @@ Proof. reflexivity. Qed.
 
 Lemma interp_proper: forall m e e', e ~ e' -> interp m e = interp m e'.
 Proof.
-  admit.
+  intros.
+  induction H; simpl.
+  - reflexivity.
+  - Search (_ ++ []). apply list_right_unit.
+  - Search ( (_ ++ _) ++ _). apply list_assoc.
+  - reflexivity.
+  - auto.
+  - rewrite IHeq1. assumption.
+  - rewrite IHeq1. rewrite IHeq2. reflexivity.
 Qed.
 
 (** QUESTION [difficulté [***] / longueur [**]]
@@ -382,7 +412,7 @@ Proof.
   with (interp m ((`X # (`Y # Unit)) # (`Z # Unit))).
   change ((x ++ []) ++ ([] ++ y) ++ z)
   with (interp m ((`X # Unit) # (Unit # `Y) # `Z)).
-  admit.
+  apply interp_proper. apply soundness. compute. reflexivity.
 Qed.
 
 Example list_eq3 : forall (u: list A) v w x y z, 
@@ -391,5 +421,10 @@ Example list_eq3 : forall (u: list A) v w x y z,
     u ++ ((v ++ [] ++ w) ++ x ++ y) ++ (z ++ []) ++ [].
 Proof.
   intros.
-  admit.
+  set (m := empty [ U |-> u ][ V |-> v ][ W |-> w][ X |-> x ][ Y |-> y ][ Z |-> z ]).
+  change (u ++ ([] ++ v ++ []) ++ w ++ x ++ (y ++ []) ++ z) 
+  with (interp m (`U # (Unit # `V # Unit) # `W # `X # (`Y # Unit) # `Z)).
+  change (u ++ ((v ++ [] ++ w) ++ x ++ y) ++ (z ++ []) ++ []) 
+  with (interp m (`U # ((`V # Unit # `W) # `X # `Y) # (`Z # Unit) # Unit)).
+  apply interp_proper. apply soundness. compute. reflexivity.
 Qed.

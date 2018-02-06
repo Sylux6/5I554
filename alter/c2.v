@@ -31,7 +31,7 @@ in the Software Foundations textbook.
 (** In this file, we study a _simple imperative programming language_
     called Imp, embodying a tiny core fragment of conventional
     mainstream languages such as C and Java.  Here is a familiar
-    mathematical function written in Imp.  
+    mathematical function written in Imp.
 
      Z ::= X;;
      Y ::= 1;;
@@ -125,7 +125,7 @@ Inductive bexp : Type :=
          switch freely among them, usually without bothering to say
          which form of BNF they're using because there is no need to:
          a rough-and-ready informal understanding is all that's
-         important. 
+         important.
 
     It's good to be comfortable with both sorts of notations:
     informal ones for communicating between humans and formal ones for
@@ -218,7 +218,8 @@ Proof.
   - (* AMinus *)
     simpl. rewrite IHa1. rewrite IHa2. reflexivity.
   - (* AMult *)
-    simpl. rewrite IHa1. rewrite IHa2. reflexivity.  Qed.
+    simpl. rewrite IHa1. rewrite IHa2. reflexivity.
+Qed.
 
 
 (** This proof can still be improved: the first case (for [a = ANum
@@ -255,66 +256,30 @@ Proof.
 
 Fixpoint optimize_0plus_b (b : bexp) : bexp :=
   match b with
-    | BTrue => BTrue
-    | BFalse => BFalse
-    | BEq a1 a2 => BEq (optimize_0plus a1) (optimize_0plus a2)
-    | BLe a1 a2 => BLe (optimize_0plus a1) (optimize_0plus a2)
-    | BNot b1 => BNot (optimize_0plus_b b1)
-    | BAnd b1 b2 => BAnd (optimize_0plus_b b1) (optimize_0plus_b b2)
+  | BTrue => BTrue
+  | BFalse => BFalse
+  | BEq a1 a2 => BEq (optimize_0plus a1) (optimize_0plus a2)
+  | BLe a1 a2 => BLe (optimize_0plus a1) (optimize_0plus a2)
+  | BNot b1 => BNot (optimize_0plus_b b1)
+  | BAnd b1 b2 => BAnd (optimize_0plus_b b1) (optimize_0plus_b b2)
   end.
 
 Theorem optimize_0plus_b_sound : forall b,
   beval (optimize_0plus_b b) = beval b.
 Proof.
-  intros.
-  induction b.
-  - simpl.
-    reflexivity.
-  - simpl.
-    reflexivity.
-  - simpl.
-    repeat rewrite optimize_0plus_sound.
-    reflexivity.
-  - simpl.
-    repeat rewrite optimize_0plus_sound.
-    reflexivity.
-  - simpl.
-    rewrite IHb.
-    reflexivity.
-  - simpl.
-    rewrite IHb1.
-    rewrite IHb2.
-    reflexivity.
-Qed.    
-    
+  induction b;
+    try (reflexivity);
+    try (simpl; repeat rewrite optimize_0plus_sound; reflexivity).
+    - simpl. rewrite IHb. reflexivity.
+    - simpl. rewrite IHb1. rewrite IHb2. reflexivity.
+Qed.
+
 (** **** Exercise: 4 stars, optional (optimizer)  *)
 (** _Design exercise_: The optimization implemented by our
     [optimize_0plus] function is only one of many possible
     optimizations on arithmetic and boolean expressions.  Write a more
     sophisticated optimizer and prove it correct. *)
 
-Fixpoint optimize (a: aexp) : aexp :=
-  match a with
-    | ANum n => ANum n
-    | APlus e1 (ANum 0) => optimize e1                          
-    | APlus (ANum 0) e2 => optimize e2
-    | APlus e1 e2 => APlus (optimize e1) (optimize e2)
-    | AMinus e1 (ANum 0) => optimize e1
-    | AMinus e1 e2 => AMinus (optimize e1) (optimize e2)
-    | AMult (ANum 0) e2 => ANum 0
-    | AMult e1 (ANum 0) => ANum 0
-    | AMult e1 e2 => AMult (optimize e1) (optimize e2)
-  end.
-
-Fixpoint optimize_b (b : bexp) : bexp :=
-  match b with
-    | BTrue => BTrue
-    | BFalse => BFalse
-    | BEq a1 a2 => BEq (optimize a1) (optimize a2)
-    | BLe a1 a2 => BLe (optimize a1) (optimize a2)
-    | BNot b1 => BNot (optimize_b b1)
-    | BAnd b1 b2 => BAnd (optimize_b b1) (optimize_b b2)
-  end.
 
 (* ################################################################# *)
 (** * Evaluation as a Relation *)
@@ -353,7 +318,7 @@ Inductive aevalR : aexp -> nat -> Prop :=
     as the closest approximation in [.v] files.)  *)
 
 Notation "e '⇓' n"
-         := (aevalR e n) 
+         := (aevalR e n)
             (at level 50, left associativity)
          : type_scope.
 
@@ -375,18 +340,18 @@ Inductive aevalR : aexp -> nat -> Prop :=
   (*----------------*)
       (ANum n) ⇓ n
   | E_APlus : forall (e1 e2: aexp) (n1 n2 : nat),
-      e1 ⇓ n1 -> 
-      e2 ⇓ n2 -> 
+      e1 ⇓ n1 ->
+      e2 ⇓ n2 ->
   (*--------------------------------*)
       (APlus e1 e2) ⇓ (n1 + n2)
   | E_AMinus : forall (e1 e2: aexp) (n1 n2 : nat),
-      e1 ⇓ n1 -> 
-      e2 ⇓ n2 -> 
+      e1 ⇓ n1 ->
+      e2 ⇓ n2 ->
   (*--------------------------------*)
       (AMinus e1 e2) ⇓ (n1 - n2)
   | E_AMult :  forall (e1 e2: aexp) (n1 n2 : nat),
-      e1 ⇓ n1 -> 
-      e2 ⇓ n2 -> 
+      e1 ⇓ n1 ->
+      e2 ⇓ n2 ->
   (*--------------------------------*)
       (AMult e1 e2) ⇓ (n1 * n2)
 
@@ -514,61 +479,47 @@ Qed.
 (** Write a relation [bevalR] in the same style as
     [aevalR], and prove that it is equivalent to [beval].*)
 
+Inductive bevalR: bexp -> bool -> Prop :=
+| E_BTrue: bevalR BTrue true
+| E_BFalse: bevalR BFalse false
+| E_BEq: forall (a1 a2: aexp) (n1 n2: nat),
+    aevalR a1 n1 ->
+    aevalR a2 n2 ->
+    bevalR (BEq a1 a2) (beq_nat n1 n2)
+| E_BLe: forall (a1 a2: aexp) (n1 n2: nat),
+    aevalR a1 n1 ->
+    aevalR a2 n2 ->
+    bevalR (BLe a1 a2) (leb n1 n2)
+| E_BNot: forall (e: bexp) (b: bool),
+    bevalR e b -> bevalR (BNot e) (negb b)
+| E_BAnd: forall (e1 e2: bexp) (b1 b2: bool),
+    bevalR e1 b1 ->
+    bevalR e2 b2 ->
+    bevalR (BAnd e1 e2) (andb b1 b2).
 
-Inductive bevalR : bexp -> bool -> Prop :=
-| E_BTrue  : bevalR BTrue true
-| E_BFalse : bevalR BFalse false
-| E_BEq : forall (e1 e2: aexp) (n1 n2: nat),
-            aevalR e1 n1 ->
-            aevalR e2 n2 ->
-            bevalR (BEq e1 e2) (beq_nat n1 n2)
-| E_BLe : forall (e1 e2: aexp) (n1 n2: nat),
-            aevalR e1 n1 ->
-            aevalR e2 n2 ->
-            bevalR (BLe e1 e2) (leb n1 n2)
-| E_BNot : forall (e: bexp) (b:bool),
-             bevalR e b ->
-             bevalR (BNot e) (negb b)
-| E_BAnd : forall (e1 e2: bexp) (b1 b2: bool),
-             bevalR e1 b1 ->
-             bevalR e2 b2 ->
-             bevalR (BAnd e1 e2) (andb b1 b2).
-
-Theorem beval_iff_bevalR : forall e b,
-  bevalR e b <-> beval e = b.
+Theorem beval_iff_bevalR: forall (e: bexp) (b: bool),
+    (bevalR e b) <-> (beval e = b).
 Proof.
   split.
-  - intros.
-    induction H; simpl.
-    + reflexivity.
-    + reflexivity.
-    + apply aeval_iff_aevalR in H.
-      rewrite H.
-      apply aeval_iff_aevalR in H0.
-      rewrite H0.
-      reflexivity.
-    + apply aeval_iff_aevalR in H.
-      apply aeval_iff_aevalR in H0.
-      rewrite H.
-      rewrite H0.
-      reflexivity.
-    + rewrite IHbevalR.
-        reflexivity.
-    + rewrite IHbevalR1.
-      rewrite IHbevalR2.
-      reflexivity.
-  - generalize dependent b. induction e; simpl; intros; subst.
+  - intro H. induction H;
+               (try reflexivity).
+    + simpl.
+      rewrite aeval_iff_aevalR in H.
+      rewrite aeval_iff_aevalR in H0.
+      rewrite H. rewrite H0. reflexivity.
+    + simpl.
+      rewrite aeval_iff_aevalR in H.
+      rewrite aeval_iff_aevalR in H0.
+      rewrite H. rewrite H0. reflexivity.
+    + simpl. rewrite IHbevalR. reflexivity.
+    + simpl. rewrite IHbevalR1. rewrite IHbevalR2. reflexivity.
+  - intro. generalize dependent b.
+    induction e; intros; try (simpl in H; rewrite <- H).
     + apply E_BTrue.
     + apply E_BFalse.
-    + apply E_BEq.
-      apply aeval_iff_aevalR. reflexivity.
-      apply aeval_iff_aevalR. reflexivity.
-    + apply E_BLe.
-      * apply aeval_iff_aevalR. reflexivity.
-      * apply aeval_iff_aevalR. reflexivity.
-    + apply E_BNot.
-      apply IHe.
-      reflexivity.
+    + apply E_BEq; rewrite aeval_iff_aevalR; reflexivity.
+    + apply E_BLe; rewrite aeval_iff_aevalR; reflexivity.
+    + apply E_BNot. apply IHe. reflexivity.
     + apply E_BAnd.
       * apply IHe1. reflexivity.
       * apply IHe2. reflexivity.
@@ -620,7 +571,7 @@ Inductive aevalR : aexp -> nat -> Prop :=
 
   | E_APlus : forall (a1 a2: aexp) (n1 n2 : nat),
 
-      a1 ⇓ n1 -> 
+      a1 ⇓ n1 ->
       a2 ⇓ n2 ->
   (*-----------------------------*)
       (APlus a1 a2) ⇓ (n1 + n2)
@@ -628,23 +579,23 @@ Inductive aevalR : aexp -> nat -> Prop :=
   | E_AMinus : forall (a1 a2: aexp) (n1 n2 : nat),
 
       a1 ⇓ n1 ->
-      a2 ⇓ n2 -> 
+      a2 ⇓ n2 ->
   (*-----------------------------*)
       (AMinus a1 a2) ⇓ (n1 - n2)
 
   | E_AMult :  forall (a1 a2: aexp) (n1 n2 : nat),
 
       a1 ⇓ n1 ->
-      a2 ⇓ n2 -> 
+      a2 ⇓ n2 ->
   (*-----------------------------*)
       (AMult a1 a2) ⇓ (n1 * n2)
 
   | E_ADiv :  forall (a1 a2: aexp) (n1 n2 n3: nat),
 
-      a1 ⇓ n1 -> 
-      a2 ⇓ n2 -> 
-      n2 > 0 -> 
-      mult n2 n3 = n1 -> 
+      a1 ⇓ n1 ->
+      a2 ⇓ n2 ->
+      n2 > 0 ->
+      mult n2 n3 = n1 ->
   (*------------------------------------------*)
       (ADiv a1 a2) ⇓ n3
 
@@ -690,20 +641,20 @@ Inductive aevalR : aexp -> nat -> Prop :=
 
   | E_APlus : forall (a1 a2: aexp) (n1 n2 : nat),
 
-      a1 ⇓ n1 -> 
-      a2 ⇓ n2 -> 
+      a1 ⇓ n1 ->
+      a2 ⇓ n2 ->
   (*-----------------------------*)
       (APlus a1 a2) ⇓ (n1 + n2)
   | E_AMinus : forall (a1 a2: aexp) (n1 n2 : nat),
 
-      a1 ⇓ n1 -> 
-      a2 ⇓ n2 -> 
+      a1 ⇓ n1 ->
+      a2 ⇓ n2 ->
   (*-----------------------------*)
       (AMinus a1 a2) ⇓ (n1 - n2)
-               
+
   | E_AMult :  forall (a1 a2: aexp) (n1 n2 : nat),
 
-      a1 ⇓ n1 -> 
+      a1 ⇓ n1 ->
       a2 ⇓ n2 ->
   (*-----------------------------*)
       (AMult a1 a2) ⇓ (n1 * n2)
@@ -746,26 +697,11 @@ Definition beq_id x1 x2 :=
 
 (** **** Exercise: 1 star (beq_id_refl)  *)
 
-(** Prove 
-
-[[
-  Theorem beq_id_refl : forall x, true = beq_id x x.
-]]
-*)
+Search (?x =? ?x).
 
 Theorem beq_id_refl : forall x, true = beq_id x x.
-Proof.
-  intros.
-  case x.
-  intuition.
-  simpl.
-  induction n; simpl.
-  - reflexivity.
-  - rewrite IHn.
-    reflexivity.
-Qed.
+Proof. induction x. simpl. apply beq_nat_refl. Qed.
 
-    
 (** The following useful property of [beq_id] follows from an
     analogous lemma about numbers: *)
 
@@ -787,7 +723,7 @@ Theorem beq_id_false_iff : forall x y : id,
   <-> x <> y.
 Proof.
   intros x y. rewrite <- beq_id_true_iff.
-  rewrite not_true_iff_false. reflexivity. 
+  rewrite not_true_iff_false. reflexivity.
 Qed.
 
 (** This useful variant follows just by rewriting: *)
@@ -797,7 +733,7 @@ Theorem false_beq_id : forall x y : id,
    -> beq_id x y = false.
 Proof.
   intros x y. rewrite beq_id_false_iff.
-  intros H. apply H. 
+  intros H. apply H.
 Qed.
 
 (* ################################################################# *)
@@ -860,114 +796,72 @@ Proof. reflexivity. Qed.
     proofs require the functional extensionality axiom.) *)
 
 (** **** Exercise: 1 star, optional (t_apply_empty)  *)
-(** First, the empty map returns its default element for all keys: 
 
-[[
-    Lemma t_apply_empty:  forall A x v, @t_empty A v x = v.
-]]
-*)
-
-Lemma t_apply_empty:  forall A x v, @t_empty A v x = v.
-Proof.
-  intros.
-  unfold t_empty.
-  reflexivity.
-Qed.
+Lemma t_apply_empty: forall A x v, @t_empty A v x = v.
+Proof. reflexivity. Qed.
 
 (** **** Exercise: 2 stars, optional (t_update_eq)  *)
 (** Next, if we update a map [m] at a key [x] with a new value [v]
     and then look up [x] in the map resulting from the [update], we
-    get back [v]: 
+    get back [v]:
 *)
 
 Lemma t_update_eq : forall A (m: total_map A) x v,
     (t_update m x v) x = v.
 Proof.
-  intros.
-  unfold t_update.
-  Search beq_id.
-  rewrite <- beq_id_refl.
-  reflexivity.
+  intros. unfold t_update. rewrite <- beq_id_refl. reflexivity.
 Qed.
 
 (** **** Exercise: 2 stars, optional (t_update_neq)  *)
 (** On the other hand, if we update a map [m] at a key [x1] and then
     look up a _different_ key [x2] in the resulting map, we get the
-    same result that [m] would have given: 
-
-[[
-  Theorem t_update_neq : forall (X:Type) v x1 x2
-                           (m : total_map X),
-    x1 <> x2 ->
-    (t_update m x1 v) x2 = m x2.
-]]
-
+    same result that [m] would have given:
 *)
 
 Theorem t_update_neq : forall (X:Type) v x1 x2
-                           (m : total_map X),
+                              (m : total_map X),
     x1 <> x2 ->
     (t_update m x1 v) x2 = m x2.
 Proof.
-  intros.
-  unfold t_update.
-  apply beq_id_false_iff in H.
-  rewrite H.
+  intros. unfold t_update.
+  rewrite false_beq_id.
   reflexivity.
+  assumption.
 Qed.
-
 
 (** **** Exercise: 3 stars, optional (t_update_shadow)  *)
 (** If we update a map [m] at a key [x] with a value [v1] and then
     update again with the same key [x] and another value [v2], the
     resulting map behaves the same (gives the same result when applied
     to any key) as the simpler map obtained by performing just
-    the second [update] on [m]: 
-
-
-[[
-  Lemma t_update_shadow : forall A (m: total_map A) v1 v2 x,
-      t_update (t_update m x v1) x v2
-    = t_update m x v2.
-]]
-
+    the second [update] on [m]:
 *)
 
 Lemma t_update_shadow : forall A (m: total_map A) v1 v2 x,
-      t_update (t_update m x v1) x v2
+    t_update (t_update m x v1) x v2
     = t_update m x v2.
 Proof.
   intros.
   unfold t_update.
   apply functional_extensionality.
-  intros.
-  induction (beq_id x x0).
-  - reflexivity.
-  - reflexivity.
+  intros. case_eq (beq_id x x0); reflexivity.
 Qed.
-
 
 (** For the final two lemmas, we begin by proving a fundamental
     _reflection lemma_ relating the equality proposition on [id]s with
     the boolean function [beq_id]. *)
 
 (** **** Exercise: 2 stars (beq_idP)  *)
-(** Prove the following: 
-
-[[
-  Lemma beq_idP : forall x y, reflect (x = y) (beq_id x y).
-]]
-
-*)
 
 Print reflect.
 
 Lemma beq_idP : forall x y, reflect (x = y) (beq_id x y).
 Proof.
-  intros.
-  case_eq (beq_id x y).
-  - intros. apply beq_id_true_iff in H. Search reflect. apply ReflectT. assumption.
-  - intros. apply beq_id_false_iff in H. apply ReflectF. assumption.
+  intros. case_eq (beq_id x y).
+  - intros. apply ReflectT.
+    rewrite beq_id_true_iff in H. assumption.
+  - intros. apply ReflectF.
+    rewrite beq_id_false_iff in H. assumption.
 Qed.
 
 (** Now, given [id]s [x1] and [x2], we can use the [destruct (beq_idP
@@ -978,57 +872,42 @@ Qed.
 (** **** Exercise: 2 stars (t_update_same)  *)
 (** Use [beq_idP] to prove the following theorem, which states that if
     we update a map to assign key [x] the same value as it already has
-    in [m], then the result is equal to [m]: 
-
-[[
-  Theorem t_update_same : forall X x (m : total_map X),
-    t_update m x (m x) = m.
-]]
-
+    in [m], then the result is equal to [m]:
 *)
 
 Theorem t_update_same : forall X x (m : total_map X),
     t_update m x (m x) = m.
 Proof.
-  intros.
   unfold t_update.
-  apply functional_extensionality.
   intros.
+  apply functional_extensionality. intros.
   destruct (beq_idP x x0).
-  + subst. reflexivity.
-  + reflexivity.
+  - rewrite e. reflexivity.
+  - reflexivity.
 Qed.
 
 (** **** Exercise: 3 stars, recommended (t_update_permute)  *)
 (** Use [beq_idP] to prove one final property of the [update]
     function: If we update a map [m] at two distinct keys, it doesn't
-    matter in which order we do the updates. 
-
-[[
-  Theorem t_update_permute : forall (X:Type) v1 v2 x1 x2
-                             (m : total_map X),
-    x2 <> x1 ->
-      (t_update (t_update m x2 v2) x1 v1)
-    = (t_update (t_update m x1 v1) x2 v2).
-]]
-
+    matter in which order we do the updates.
 *)
 
 Theorem t_update_permute : forall (X:Type) v1 v2 x1 x2
-                             (m : total_map X),
+                                  (m : total_map X),
     x2 <> x1 ->
-      (t_update (t_update m x2 v2) x1 v1)
+    (t_update (t_update m x2 v2) x1 v1)
     = (t_update (t_update m x1 v1) x2 v2).
 Proof.
   intros.
   unfold t_update.
-  apply functional_extensionality.
-  intros.
+  apply functional_extensionality. intros.
   destruct (beq_idP x1 x).
-  + subst. rewrite false_beq_id. reflexivity. assumption.
-  + reflexivity.
-Qed. 
-
+  - rewrite <- e.
+    rewrite <- beq_id_false_iff in H.
+    rewrite H.
+    reflexivity.
+  - reflexivity.
+Qed.
 
 (* ################################################################# *)
 (** * Expressions With Variables *)
@@ -1146,7 +1025,7 @@ Proof. reflexivity. Qed.
     mechanism.  In particular, we use [IFB] to avoid conflicting with
     the [if] notation from the standard library.)
 
-     c ::= SKIP | x ::= a | c ;; c | IFB b THEN c ELSE c FI 
+     c ::= SKIP | x ::= a | c ;; c | IFB b THEN c ELSE c FI
          | WHILE b DO c END
 *)
 (**
@@ -1321,7 +1200,7 @@ Fixpoint ceval_fun_no_while (st : state) (c : com)
 
 (* ----------------------------------------------------------------- *)
 (** *** Operational Semantics *)
-(** Here is an informal definition of evaluation, presented as inference 
+(** Here is an informal definition of evaluation, presented as inference
     rules for the sake of readability:
 
                            ----------------                            (E_Skip)
@@ -1427,64 +1306,75 @@ Proof.
   - (* if command *)
     apply E_IfFalse.
       reflexivity.
-      apply E_Ass. reflexivity.  Qed.
+      apply E_Ass. reflexivity.
+Qed.
 
 (** **** Exercise: 2 stars (ceval_example2)  *)
 
-(** Show that the following derivation is inhabited:
-
-[[
-Example ceval_example2:
-    (X ::= ANum 0;; Y ::= ANum 1;; Z ::= ANum 2) / empty_state ⇓
-    (t_update (t_update (t_update empty_state X 0) Y 1) Z 2).
-]]
-*)
+(** Show that the following derivation is inhabited: *)
 
 Example ceval_example2:
     (X ::= ANum 0;; Y ::= ANum 1;; Z ::= ANum 2) / empty_state ⇓
     (t_update (t_update (t_update empty_state X 0) Y 1) Z 2).
 Proof.
-  apply E_Seq with (t_update empty_state X 0).
-  - apply E_Ass. reflexivity.
-  - apply E_Seq with (t_update (t_update empty_state X 0) Y 1).
-    + apply E_Ass. reflexivity.
-    + apply E_Ass. simpl. reflexivity.
+  apply E_Seq with (st':=(t_update empty_state X 0)).
+  apply E_Ass. reflexivity.
+  apply E_Seq with (st':=(t_update (t_update empty_state X 0) Y 1)).
+  apply E_Ass. reflexivity.
+  apply E_Ass. reflexivity.
 Qed.
 
 (** **** Exercise: 3 stars, advanced (pup_to_n)  *)
 (** Write an Imp program that sums the numbers from [1] to
    [X] (inclusive: [1 + 2 + ... + X]) in the variable [Y].
    Prove that this program executes as intended for [X] = [2]
-   (the latter is trickier than you might expect). 
-
-[[
-Definition pup_to_n : com  := _your_definition_ .
-
-Theorem pup_to_2_ceval :
-  pup_to_n / (t_update empty_state X 2) ⇓
-    t_update (t_update (t_update (t_update (t_update (t_update empty_state
-      X 2) Y 0) Y 2) X 1) Y 3) X 0.
+   (the latter is trickier than you might expect).
 *)
 
-Definition pup_to_n : com  :=
-  Y ::= ANum 0;;
-  Z ::= ANum 0;;
+Definition pup_to_n: com :=
+  Z ::= ANum 1;;
+  Y ::= AId X;;
   WHILE BNot (BEq (AId Z) (AId X)) DO
     Y ::= APlus (AId Y) (AId Z);;
     Z ::= APlus (AId Z) (ANum 1)
-  END;;
-  Y ::= APlus (AId Y) (AId X).
-  
-Theorem pup_to_2_ceval :
+  END.
+
+Theorem pup_to_2_ceval : exists st,
+  (* official
   pup_to_n / (t_update empty_state X 2) ⇓
     t_update (t_update (t_update (t_update (t_update (t_update empty_state
       X 2) Y 0) Y 2) X 1) Y 3) X 0.
+   *)
+  pup_to_n / (t_update empty_state X 2) ⇓
+           (t_update st Y 3).
 Proof.
   unfold pup_to_n.
-  eapply E_Seq.
-  - Search empty_state. constructor.
-  Admitted.
-
+  pose (s1 := (t_update empty_state X 2)).
+  pose (s2 := (t_update s1 Z 1)).
+  pose (s3 := (t_update s2 Y 2)).
+  pose (s4 := (t_update s3 Y 3)).
+  pose (s5 := (t_update s4 Z 2)).
+  exists (t_update s1 Z 2).
+  apply E_Seq with (st':=s2).
+  apply E_Ass. reflexivity.
+  apply E_Seq with (st':=s3).
+  apply E_Ass. simpl.
+  unfold s2. unfold s1.
+  apply t_update_neq. discriminate.
+  apply E_WhileLoop with (st':=s5).
+  reflexivity.
+  apply E_Seq with (st':=s4).
+  apply E_Ass. simpl. unfold s3. unfold s2.
+  rewrite t_update_neq. rewrite t_update_eq. reflexivity.
+  discriminate.
+  apply E_Ass. reflexivity.
+  unfold s5. unfold s4. unfold s3. unfold s2. unfold s1.
+  rewrite t_update_shadow.
+  rewrite t_update_permute with (x1 := Z)(x2 := Y).
+  rewrite t_update_shadow.
+  apply E_WhileEnd. reflexivity.
+  discriminate.
+Qed.
 
 (* ================================================================= *)
 (** ** Determinism of Evaluation *)
@@ -1564,32 +1454,23 @@ Proof.
 (** **** Exercise: 2 stars, recommended (XtimesYinZ_spec)  *)
 (** State and prove a specification of [XtimesYinZ]. *)
 
+Theorem XtimesYinZ_spec: forall x y st st',
+    st X = x ->
+    st Y = y ->
+    XtimesYinZ / st ⇓ st' ->
+    st' Z = x * y.
+Proof.
+  intros. inversion H1. subst.
+  simpl. apply t_update_eq.
+Qed.
 
 (** **** Exercise: 3 stars, recommended (loop_never_stops)  *)
 
 (** By induction on the assumed derivation showing that [loopdef]
     terminates, prove that the program [loop] never terminates.  Most
     of the cases are immediately contradictory (and so can be solved
-    in one step with [inversion]). 
-
-[[
-  Theorem loop_never_stops : forall st st',
-    ~(loop / st ⇓ st').
-]] 
+    in one step with [inversion]).
 *)
-
-Theorem XtimesYinZ_spec : forall st x y st',
-  st X = x ->
-  st Y = y ->
-  XtimesYinZ / st ⇓ st' ->
-    st' Z = x * y.
-Proof.
-  intros.
-  inversion H1.
-  subst.
-  simpl.
-  apply t_update_eq.
-Qed.
 
 Theorem loop_never_stops : forall st st',
   ~(loop / st ⇓ st').
@@ -1598,10 +1479,8 @@ Proof.
   remember (WHILE BTrue DO SKIP END) as loopdef
            eqn:Heqloopdef.
   induction contra; try discriminate.
-  - induction b; simpl; try discriminate.
-  - induction b; simpl; try discriminate.
-    apply IHcontra2.
-    assumption.
+  - induction b; try simpl in H; try discriminate.
+  - apply IHcontra2. assumption.
 Qed.
 
 (** **** Exercise: 3 stars (no_whilesR)  *)
@@ -1624,23 +1503,64 @@ Fixpoint no_whiles (c : com) : bool :=
 (** This predicate yields [true] just on programs that have no while
     loops.  Using [Inductive], write a property [no_whilesR] such that
     [no_whilesR c] is provable exactly when [c] is a program with no
-    while loops.  Then prove its equivalence with [no_whiles]. 
+    while loops.  Then prove its equivalence with [no_whiles].
+*)
 
-[[
-Inductive no_whilesR: com -> Prop := _to be defined_.
+Inductive no_whilesR: com -> Prop :=
+| NW_Skip: no_whilesR SKIP
+| NW_Ass: forall v a, no_whilesR (v ::= a)
+| NW_Seq: forall c1 c2,
+    no_whilesR c1 ->
+    no_whilesR c2 ->
+    no_whilesR (c1;; c2)
+| NW_If: forall b ct cf,
+    no_whilesR ct ->
+    no_whilesR cf ->
+    no_whilesR (IFB b THEN ct ELSE cf FI).
 
 Theorem no_whiles_eqv:
    forall c, no_whiles c = true <-> no_whilesR c.
-]]
-
-*)
-
+Proof.
+  split; intros.
+  - induction c;
+      try apply NW_Skip;
+      try apply NW_Ass;
+      try apply NW_Seq;
+      try apply NW_If;
+      try (inversion H;
+           apply andb_true_iff in H1;
+           destruct H1;
+           try (apply IHc1; assumption);
+           try (apply IHc2; assumption)).
+  - induction H;
+      try reflexivity;
+      try (simpl; apply andb_true_iff; split; assumption).
+Qed.
 
 (** **** Exercise: 4 stars (no_whiles_terminating)  *)
 (** Imp programs that don't involve while loops always terminate.
     State and prove a theorem [no_whiles_terminating] that says this. *)
 (** Use either [no_whiles] or [no_whilesR], as you prefer. *)
 
+Theorem no_whiles_terminating: forall c,
+    no_whilesR c -> forall st, exists st', c / st ⇓ st'.
+Proof.
+  intros c NW. induction NW; intro.
+  - exists st. apply E_Skip.
+  - exists (t_update st v (aeval st a)).
+    apply E_Ass. reflexivity.
+  - destruct IHNW1 with st.
+    destruct IHNW2 with x.
+    exists x0.
+    apply E_Seq with x; assumption.
+  - case_eq (beval st b); intro.
+    + destruct IHNW1 with st.
+      exists x.
+      apply E_IfTrue; assumption.
+    + destruct IHNW2 with st.
+      exists x.
+      apply E_IfFalse; assumption.
+Qed.
 
 (** **** Exercise: 3 stars, optional (short_circuit)  *)
 (** Most modern programming languages use a "short-circuit" evaluation
@@ -1675,7 +1595,7 @@ Theorem no_whiles_eqv:
 
 (** ** Lessons learned *)
 
-(** 
+(**
 - "Denotational semantics" in Maths = "evaluation" in Coq
 - "Operational semantics" in Maths = "inductive relation" in Coq
 - Meta-theory = "forall e: exp, P e"
